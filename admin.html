@@ -229,6 +229,20 @@ tr.selected{background:var(--brand-soft)}
 
     <div class="section-head">
       <div>
+        <h2>지급 이력 (감사 로그)</h2>
+        <div class="desc">이 기기에서 이루어진 모든 포인트 지급/차감/초기화 기록입니다. 사내 게임 등 투명성이 필요할 때 조회용으로 사용하세요.</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="clearAuditLog()">이력 전체 삭제</button>
+    </div>
+    <div class="table-wrap" style="margin-bottom:16px">
+      <table>
+        <thead><tr><th>시각</th><th>대상</th><th>유형</th><th>금액</th><th>잔액 변화</th><th>사유</th></tr></thead>
+        <tbody id="auditTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section-head">
+      <div>
         <h2>봇 플레이어 (리더보드)</h2>
         <div class="desc">리더보드에 함께 표시되는 가상 경쟁 플레이어입니다.</div>
       </div>
@@ -283,7 +297,7 @@ tr.selected{background:var(--brand-soft)}
 
     <div class="card">
       <h3 style="color:var(--red)">위험 구역</h3>
-      <p class="hint" style="margin-bottom:12px">아래 작업은 되돌릴 수 없습니다. 이 브라우저에 저장된 모든 PICKPLAY 데이터(경기·모든 프로필·베팅 기록·봇·설정)가 삭제됩니다.</p>
+      <p class="hint" style="margin-bottom:12px">아래 작업은 되돌릴 수 없습니다. 이 브라우저에 저장된 모든 PICKPLAY 데이터(경기·모든 프로필·베팅 기록·봇·지급 이력·설정)가 삭제됩니다.</p>
       <button class="btn btn-danger" onclick="factoryReset()">전체 데이터 초기화</button>
     </div>
   </div>
@@ -298,6 +312,8 @@ const SETTINGS_KEY = 'pickplay_settings_v1';
 const BOTS_KEY = 'pickplay_bots_v1';
 const PROFILES_KEY = 'pickplay_profiles_v1';
 const ACTIVE_KEY = 'pickplay_active_profile_v1';
+const AUDIT_KEY = 'pickplay_audit_log_v1';
+const AUDIT_MAX = 300;
 const DEFAULT_SETTINGS = {startingBalance:10000, minStake:100, maxStake:100000};
 
 const BOTS_SEED = [
@@ -378,6 +394,47 @@ function loadProfileState(name){
   return null;
 }
 function saveProfileState(name, s){ localStorage.setItem(profileStateKey(name), JSON.stringify(s)); }
+
+/* ===================== 지급 이력(감사 로그) ===================== */
+function loadAuditLog(){
+  try{ return JSON.parse(localStorage.getItem(AUDIT_KEY)) || []; }catch(e){ return []; }
+}
+function saveAuditLog(list){ localStorage.setItem(AUDIT_KEY, JSON.stringify(list.slice(0, AUDIT_MAX))); }
+function addAuditEntry(entry){
+  const log = loadAuditLog();
+  log.unshift({id:'a'+Date.now()+Math.random().toString(36).slice(2,6), ts:Date.now(), ...entry});
+  saveAuditLog(log);
+  renderAuditLog();
+}
+function clearAuditLog(){
+  if(!confirm('지급 이력을 전부 삭제할까요? 되돌릴 수 없습니다.')) return;
+  saveAuditLog([]);
+  renderAuditLog();
+  showToast('지급 이력을 삭제했습니다.');
+}
+function renderAuditLog(){
+  const body = document.getElementById('auditTableBody');
+  if(!body) return;
+  const log = loadAuditLog();
+  if(log.length===0){
+    body.innerHTML = `<tr><td colspan="6"><div class="empty-state">아직 기록이 없습니다.</div></td></tr>`;
+    return;
+  }
+  body.innerHTML = log.map(e=>{
+    const d = new Date(e.ts);
+    const timeText = d.toLocaleString('ko-KR', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+    const amtText = e.amount ? (e.amount>0?'+':'') + e.amount.toLocaleString()+'P' : '-';
+    const changeText = (e.before!=null && e.after!=null) ? `${e.before.toLocaleString()}P → ${e.after.toLocaleString()}P` : '-';
+    return `<tr>
+      <td>${timeText}</td>
+      <td><b>${e.target}</b>${e.targetType==='bot'?' <span class="pill upcoming">봇</span>':''}</td>
+      <td>${e.type}</td>
+      <td>${amtText}</td>
+      <td>${changeText}</td>
+      <td>${e.reason ? e.reason : '<span style="color:var(--ink4)">-</span>'}</td>
+    </tr>`;
+  }).join('');
+}
 
 /* ===================== 토스트 ===================== */
 let toastTimer = null;
@@ -630,6 +687,7 @@ function renderPointsBlock(){
     </div>
     <div class="adjust-row">
       <input type="number" id="playerAdjustAmt" placeholder="포인트" min="0" step="100">
+      <input type="text" id="playerAdjustReason" placeholder="사유 (선택, 예: 이달의 우수사원 포상)" style="flex:1;min-width:160px;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:8px 10px;font-size:13px">
       <button class="btn btn-primary btn-sm" onclick="adjustPlayerPoints(1)">+ 지급</button>
       <button class="btn btn-danger btn-sm" onclick="adjustPlayerPoints(-1)">- 차감</button>
       <button class="btn btn-ghost btn-sm" onclick="resetPlayerPoints()">시작 포인트로 초기화</button>
@@ -641,9 +699,12 @@ function adjustPlayerPoints(sign){
   if(!selectedPointsProfile){ showToast('플레이어를 먼저 선택해주세요.'); return; }
   const amt = Number(document.getElementById('playerAdjustAmt').value)||0;
   if(amt<=0){ showToast('조정할 포인트를 입력해주세요.'); return; }
+  const reason = document.getElementById('playerAdjustReason').value.trim();
   const ps = loadProfileState(selectedPointsProfile) || {balance:0, history:[]};
+  const before = ps.balance;
   ps.balance = Math.max(0, ps.balance + sign*amt);
   saveProfileState(selectedPointsProfile, ps);
+  addAuditEntry({target:selectedPointsProfile, targetType:'player', type: sign>0?'지급':'차감', amount: sign*amt, before, after: ps.balance, reason});
   renderProfileTable();
   renderPointsBlock();
   showToast(sign>0 ? `${amt.toLocaleString()}P 지급했습니다.` : `${amt.toLocaleString()}P 차감했습니다.`);
@@ -654,8 +715,10 @@ function resetPlayerPoints(){
   const settings = loadSettings();
   if(!confirm(`"${selectedPointsProfile}"의 보유 포인트를 시작 포인트(${settings.startingBalance.toLocaleString()}P)로 초기화할까요?`)) return;
   const ps = loadProfileState(selectedPointsProfile) || {balance:0, history:[]};
+  const before = ps.balance;
   ps.balance = settings.startingBalance;
   saveProfileState(selectedPointsProfile, ps);
+  addAuditEntry({target:selectedPointsProfile, targetType:'player', type:'초기화', amount: ps.balance-before, before, after: ps.balance, reason:''});
   renderProfileTable();
   renderPointsBlock();
   showToast('포인트를 초기화했습니다.');
@@ -686,15 +749,19 @@ function renderBotTable(){
 function adjustBotPoints(i, sign){
   const amt = Number(document.getElementById('bot-adjust-'+i).value)||0;
   if(amt<=0){ showToast('조정할 포인트를 입력해주세요.'); return; }
+  const before = bots[i].balance;
   bots[i].balance = Math.max(0, bots[i].balance + sign*amt);
   saveBots(bots);
+  addAuditEntry({target:bots[i].name, targetType:'bot', type: sign>0?'지급':'차감', amount: sign*amt, before, after: bots[i].balance, reason:''});
   renderBotTable();
 }
 
 function deleteBot(i){
   if(!confirm(`"${bots[i].name}" 봇을 삭제할까요?`)) return;
+  const name = bots[i].name;
   bots.splice(i,1);
   saveBots(bots);
+  addAuditEntry({target:name, targetType:'bot', type:'봇 삭제', amount:0, before:null, after:null, reason:''});
   renderBotTable();
 }
 
@@ -705,6 +772,7 @@ function addBot(){
   if(!trimmed) return;
   bots.push({name:trimmed, avatar:trimmed.slice(0,1), balance:10000, wins:0, total:0});
   saveBots(bots);
+  addAuditEntry({target:trimmed, targetType:'bot', type:'봇 추가', amount:10000, before:0, after:10000, reason:''});
   renderBotTable();
   showToast('봇을 추가했습니다.');
 }
@@ -824,6 +892,7 @@ function refreshAll(){
   renderMatches();
   renderProfileTable();
   renderPointsBlock();
+  renderAuditLog();
   renderBotTable();
   renderBetsProfileSelect();
   renderBets();
