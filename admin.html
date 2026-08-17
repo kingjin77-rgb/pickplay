@@ -84,6 +84,9 @@ table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;font-size:11.5px;color:var(--ink4);font-weight:700;padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
 td{padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
 tr:last-child td{border-bottom:none}
+tr.selectable{cursor:pointer}
+tr.selectable:hover{background:var(--surface2)}
+tr.selected{background:var(--brand-soft)}
 .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--sh)}
 .table-wrap table{min-width:640px}
 
@@ -101,6 +104,10 @@ tr:last-child td{border-bottom:none}
 
 .adjust-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .adjust-row input{width:110px;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:8px 10px;font-size:13px}
+
+.profile-select-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.profile-select-row label{font-size:12.5px;font-weight:700;color:var(--ink3)}
+.profile-select-row select{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;font-size:13.5px;min-width:160px}
 
 .toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;font-size:13px;font-weight:600;box-shadow:var(--sh-md);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:900;max-width:90vw;text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
@@ -143,6 +150,8 @@ tr:last-child td{border-bottom:none}
           <select id="f-sport" onchange="onSportChange()">
             <option value="soccer">⚽ 축구 (승/무/패)</option>
             <option value="baseball">⚾ 야구 (승/패)</option>
+            <option value="basketball">🏀 농구 (승/패)</option>
+            <option value="volleyball">🏐 배구 (승/패)</option>
             <option value="esports">🎮 e스포츠 (승/패)</option>
           </select>
         </div>
@@ -185,7 +194,7 @@ tr:last-child td{border-bottom:none}
     <div class="section-head">
       <div>
         <h2>등록된 경기 (<span id="matchCount">0</span>)</h2>
-        <div class="desc">결과를 확정하면 해당 경기에 예측한 플레이어의 포인트가 자동 정산됩니다.</div>
+        <div class="desc">결과를 확정하면 해당 경기에 예측한 모든 프로필의 포인트가 자동 정산됩니다.</div>
       </div>
     </div>
     <div class="table-wrap">
@@ -200,10 +209,24 @@ tr:last-child td{border-bottom:none}
 
   <!-- ===== 포인트 관리 ===== -->
   <div class="view" id="view-points">
+    <div class="section-head">
+      <div>
+        <h2>플레이어 프로필</h2>
+        <div class="desc">이 기기(브라우저)에서 만들어진 모든 프로필입니다. 행을 클릭하면 아래에서 포인트를 조정할 수 있습니다.</div>
+      </div>
+    </div>
+    <div class="table-wrap" style="margin-bottom:16px">
+      <table>
+        <thead><tr><th>닉네임</th><th>보유 포인트</th><th>예측 수</th></tr></thead>
+        <tbody id="profileTableBody"></tbody>
+      </table>
+    </div>
+
     <div class="card">
-      <h3>현재 플레이어</h3>
+      <h3>선택한 플레이어 포인트 조정</h3>
       <div id="playerPointBlock"></div>
     </div>
+
     <div class="section-head">
       <div>
         <h2>봇 플레이어 (리더보드)</h2>
@@ -221,6 +244,10 @@ tr:last-child td{border-bottom:none}
 
   <!-- ===== 배팅 관리 ===== -->
   <div class="view" id="view-bets">
+    <div class="profile-select-row">
+      <label>플레이어 선택</label>
+      <select id="betsProfileSelect" onchange="onBetsProfileChange()"></select>
+    </div>
     <div class="stat-row" id="betStats"></div>
     <div class="table-wrap">
       <table>
@@ -251,12 +278,12 @@ tr:last-child td{border-bottom:none}
       <div class="form-actions">
         <button class="btn btn-primary" onclick="saveSettingsForm()">설정 저장</button>
       </div>
-      <div class="hint">설정은 이후 신규 예측/신규 플레이어부터 적용되며, 기존 플레이어의 보유 포인트를 소급 변경하지 않습니다.</div>
+      <div class="hint">설정은 이후 신규 예측/신규 프로필부터 적용되며, 기존 프로필의 보유 포인트를 소급 변경하지 않습니다.</div>
     </div>
 
     <div class="card">
       <h3 style="color:var(--red)">위험 구역</h3>
-      <p class="hint" style="margin-bottom:12px">아래 작업은 되돌릴 수 없습니다. 이 브라우저에 저장된 모든 PICKPLAY 데이터(경기·포인트·베팅 기록·설정)가 삭제됩니다.</p>
+      <p class="hint" style="margin-bottom:12px">아래 작업은 되돌릴 수 없습니다. 이 브라우저에 저장된 모든 PICKPLAY 데이터(경기·모든 프로필·베팅 기록·봇·설정)가 삭제됩니다.</p>
       <button class="btn btn-danger" onclick="factoryReset()">전체 데이터 초기화</button>
     </div>
   </div>
@@ -266,10 +293,21 @@ tr:last-child td{border-bottom:none}
 <div class="toast" id="toast"></div>
 
 <script>
-const STORE_KEY = 'pickplay_state_v1';
 const MATCHES_KEY = 'pickplay_matches_v1';
 const SETTINGS_KEY = 'pickplay_settings_v1';
+const BOTS_KEY = 'pickplay_bots_v1';
+const PROFILES_KEY = 'pickplay_profiles_v1';
+const ACTIVE_KEY = 'pickplay_active_profile_v1';
 const DEFAULT_SETTINGS = {startingBalance:10000, minStake:100, maxStake:100000};
+
+const BOTS_SEED = [
+  {name:'축구광민수', avatar:'민'},
+  {name:'야구덕후현지', avatar:'현'},
+  {name:'e스포츠킹', avatar:'킹'},
+  {name:'승부사재훈', avatar:'재'},
+  {name:'홈런왕지수', avatar:'지'},
+  {name:'K리그마스터', avatar:'마'},
+];
 
 const DEFAULT_MATCHES = [
   {id:'m1', sport:'soccer', league:'K리그1', home:'FC서울', away:'강원FC', kickoff:'2026-08-17 19:00', odds:{home:2.2, draw:3.1, away:2.9}},
@@ -284,11 +322,17 @@ const DEFAULT_MATCHES = [
   {id:'m10', sport:'esports', league:'LCK', home:'한화생명e스포츠', away:'디플러스기아', kickoff:'2026-08-21 17:00', odds:{home:2.5, away:1.55}},
   {id:'m11', sport:'soccer', league:'K리그1', home:'포항스틸러스', away:'광주FC', kickoff:'2026-08-21 19:00', odds:{home:1.9, draw:3.2, away:3.7}},
   {id:'m12', sport:'baseball', league:'KBO', home:'두산베어스', away:'KIA타이거즈', kickoff:'2026-08-22 18:30', odds:{home:2.0, away:1.85}},
+  {id:'m13', sport:'basketball', league:'KBL', home:'서울SK나이츠', away:'안양정관장', kickoff:'2026-08-19 19:00', odds:{home:1.85, away:1.95}},
+  {id:'m14', sport:'basketball', league:'KBL', home:'창원LG', away:'수원KT', kickoff:'2026-08-21 19:00', odds:{home:2.0, away:1.8}},
+  {id:'m15', sport:'volleyball', league:'V리그', home:'대한항공', away:'현대캐피탈', kickoff:'2026-08-18 19:00', odds:{home:1.7, away:2.1}},
+  {id:'m16', sport:'volleyball', league:'V리그', home:'흥국생명', away:'GS칼텍스', kickoff:'2026-08-20 19:00', odds:{home:1.9, away:1.9}},
 ];
 
-let state = null;
 let MATCHES = [];
+let bots = [];
 let editingMatchId = null;
+let selectedPointsProfile = '';
+let selectedBetsProfile = '';
 
 /* ===================== 로드/저장 ===================== */
 function loadSettings(){
@@ -311,14 +355,29 @@ function loadMatches(){
 }
 function saveMatches(m){ localStorage.setItem(MATCHES_KEY, JSON.stringify(m)); }
 
-function loadState(){
+function loadBots(){
   try{
-    const raw = localStorage.getItem(STORE_KEY);
+    const raw = localStorage.getItem(BOTS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  const seeded = BOTS_SEED.map(b=>({...b, balance: 8000 + Math.floor(Math.random()*6000), wins:Math.floor(Math.random()*8), total:Math.floor(6+Math.random()*10)}));
+  localStorage.setItem(BOTS_KEY, JSON.stringify(seeded));
+  return seeded;
+}
+function saveBots(list){ localStorage.setItem(BOTS_KEY, JSON.stringify(list)); }
+
+function getProfiles(){
+  try{ return JSON.parse(localStorage.getItem(PROFILES_KEY)) || []; }catch(e){ return []; }
+}
+function profileStateKey(name){ return 'pickplay_profile_v1__' + name; }
+function loadProfileState(name){
+  try{
+    const raw = localStorage.getItem(profileStateKey(name));
     if(raw) return JSON.parse(raw);
   }catch(e){}
   return null;
 }
-function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function saveProfileState(name, s){ localStorage.setItem(profileStateKey(name), JSON.stringify(s)); }
 
 /* ===================== 토스트 ===================== */
 let toastTimer = null;
@@ -343,6 +402,9 @@ function outcomeLabel(sport, key, home, away){
   if(key==='home') return home;
   if(key==='away') return away;
   return '무승부';
+}
+function sportIcon(sport){
+  return {soccer:'⚽', baseball:'⚾', basketball:'🏀', volleyball:'🏐', esports:'🎮'}[sport] || '🏆';
 }
 
 function onSportChange(){
@@ -445,7 +507,7 @@ function setMatchResult(id){
   const m = MATCHES.find(x=>x.id===id);
   m.result = val;
   saveMatches(MATCHES);
-  settleAllPending();
+  settleAllProfiles();
   renderMatches();
   showToast(`결과가 확정되어 관련 예측이 정산되었습니다. (${outcomeLabel(m.sport, val, m.home, m.away)})`);
 }
@@ -475,7 +537,7 @@ function renderMatches(){
     const keys = isSoccer ? ['home','draw','away'] : ['home','away'];
     const options = keys.map(k=>`<option value="${k}" ${m.result===k?'selected':''}>${outcomeLabel(m.sport,k,m.home,m.away)}</option>`).join('');
     return `<tr>
-      <td>${m.sport==='soccer'?'⚽':m.sport==='baseball'?'⚾':'🎮'} ${m.league}</td>
+      <td>${sportIcon(m.sport)} ${m.league}</td>
       <td><b>${m.home}</b> vs <b>${m.away}</b></td>
       <td>${m.kickoff}</td>
       <td>${oddsText}</td>
@@ -501,56 +563,111 @@ function renderMatches(){
   }).join('');
 }
 
-/* ===================== 정산(경기 결과 확정 시 대기중 베팅 처리) ===================== */
-function settleAllPending(){
-  if(!state) return;
-  let changed = false;
-  state.history.forEach(h=>{
-    if(h.result==='pending'){
-      const m = MATCHES.find(x=>x.id===h.matchId);
-      if(m && m.result){
-        if(h.pick===m.result){
-          h.result = 'win';
-          h.delta = Math.floor(h.stake*h.multiplier);
-          state.balance += h.delta;
-        } else {
-          h.result = 'lose';
-          h.delta = -h.stake;
+/* ===================== 정산(경기 결과 확정 시 모든 프로필의 대기중 베팅 처리) ===================== */
+function settleAllProfiles(){
+  getProfiles().forEach(name=>{
+    const ps = loadProfileState(name);
+    if(!ps) return;
+    let changed = false;
+    ps.history.forEach(h=>{
+      if(h.result==='pending'){
+        const m = MATCHES.find(x=>x.id===h.matchId);
+        if(m && m.result){
+          if(h.pick===m.result){
+            h.result = 'win';
+            h.delta = Math.floor(h.stake*h.multiplier);
+            ps.balance += h.delta;
+          } else {
+            h.result = 'lose';
+            h.delta = -h.stake;
+          }
+          changed = true;
         }
-        changed = true;
       }
-    }
+    });
+    if(changed) saveProfileState(name, ps);
   });
-  if(changed) saveState();
 }
 
 /* ===================== 포인트 관리 ===================== */
-function renderPoints(){
-  const block = document.getElementById('playerPointBlock');
-  if(!state || !state.nickname){
-    block.innerHTML = `<div class="empty-state">아직 플레이어가 없습니다. 플레이 화면에서 닉네임을 먼저 만들어주세요.</div>`;
-  } else {
-    block.innerHTML = `
-      <div class="stat-row" style="margin-bottom:14px">
-        <div class="stat-card"><div class="lab">닉네임</div><div class="val" style="font-size:16px">${state.nickname}</div></div>
-        <div class="stat-card"><div class="lab">보유 포인트</div><div class="val" style="color:var(--brand)">${state.balance.toLocaleString()}P</div></div>
-        <div class="stat-card"><div class="lab">총 예측 수</div><div class="val">${state.history.length}</div></div>
-      </div>
-      <div class="adjust-row">
-        <input type="number" id="playerAdjustAmt" placeholder="포인트" min="0" step="100">
-        <button class="btn btn-primary btn-sm" onclick="adjustPlayerPoints(1)">+ 지급</button>
-        <button class="btn btn-danger btn-sm" onclick="adjustPlayerPoints(-1)">- 차감</button>
-        <button class="btn btn-ghost btn-sm" onclick="resetPlayerPoints()">시작 포인트로 초기화</button>
-      </div>
-    `;
+function renderProfileTable(){
+  const body = document.getElementById('profileTableBody');
+  const profiles = getProfiles();
+  if(profiles.length===0){
+    body.innerHTML = `<tr><td colspan="3"><div class="empty-state">아직 프로필이 없습니다. 플레이 화면에서 닉네임을 먼저 만들어주세요.</div></td></tr>`;
+    return;
   }
+  if(!selectedPointsProfile || !profiles.includes(selectedPointsProfile)) selectedPointsProfile = profiles[0];
+  body.innerHTML = profiles.map(name=>{
+    const ps = loadProfileState(name) || {balance:0, history:[]};
+    const selected = name===selectedPointsProfile;
+    return `<tr class="selectable ${selected?'selected':''}" onclick="selectPointsProfile('${name}')">
+      <td><b>${name}</b></td>
+      <td>${ps.balance.toLocaleString()}P</td>
+      <td>${ps.history.length}</td>
+    </tr>`;
+  }).join('');
+}
+function selectPointsProfile(name){
+  selectedPointsProfile = name;
+  renderProfileTable();
+  renderPointsBlock();
+}
 
+function renderPointsBlock(){
+  const block = document.getElementById('playerPointBlock');
+  const profiles = getProfiles();
+  if(profiles.length===0 || !selectedPointsProfile){
+    block.innerHTML = `<div class="empty-state">선택된 플레이어가 없습니다.</div>`;
+    return;
+  }
+  const ps = loadProfileState(selectedPointsProfile) || {balance:0, history:[]};
+  block.innerHTML = `
+    <div class="stat-row" style="margin-bottom:14px">
+      <div class="stat-card"><div class="lab">닉네임</div><div class="val" style="font-size:16px">${selectedPointsProfile}</div></div>
+      <div class="stat-card"><div class="lab">보유 포인트</div><div class="val" style="color:var(--brand)">${ps.balance.toLocaleString()}P</div></div>
+      <div class="stat-card"><div class="lab">총 예측 수</div><div class="val">${ps.history.length}</div></div>
+    </div>
+    <div class="adjust-row">
+      <input type="number" id="playerAdjustAmt" placeholder="포인트" min="0" step="100">
+      <button class="btn btn-primary btn-sm" onclick="adjustPlayerPoints(1)">+ 지급</button>
+      <button class="btn btn-danger btn-sm" onclick="adjustPlayerPoints(-1)">- 차감</button>
+      <button class="btn btn-ghost btn-sm" onclick="resetPlayerPoints()">시작 포인트로 초기화</button>
+    </div>
+  `;
+}
+
+function adjustPlayerPoints(sign){
+  if(!selectedPointsProfile){ showToast('플레이어를 먼저 선택해주세요.'); return; }
+  const amt = Number(document.getElementById('playerAdjustAmt').value)||0;
+  if(amt<=0){ showToast('조정할 포인트를 입력해주세요.'); return; }
+  const ps = loadProfileState(selectedPointsProfile) || {balance:0, history:[]};
+  ps.balance = Math.max(0, ps.balance + sign*amt);
+  saveProfileState(selectedPointsProfile, ps);
+  renderProfileTable();
+  renderPointsBlock();
+  showToast(sign>0 ? `${amt.toLocaleString()}P 지급했습니다.` : `${amt.toLocaleString()}P 차감했습니다.`);
+}
+
+function resetPlayerPoints(){
+  if(!selectedPointsProfile) return;
+  const settings = loadSettings();
+  if(!confirm(`"${selectedPointsProfile}"의 보유 포인트를 시작 포인트(${settings.startingBalance.toLocaleString()}P)로 초기화할까요?`)) return;
+  const ps = loadProfileState(selectedPointsProfile) || {balance:0, history:[]};
+  ps.balance = settings.startingBalance;
+  saveProfileState(selectedPointsProfile, ps);
+  renderProfileTable();
+  renderPointsBlock();
+  showToast('포인트를 초기화했습니다.');
+}
+
+function renderBotTable(){
   const botBody = document.getElementById('botTableBody');
-  if(!state || !state.bots || state.bots.length===0){
+  if(!bots || bots.length===0){
     botBody.innerHTML = `<tr><td colspan="4"><div class="empty-state">봇 플레이어가 없습니다.</div></td></tr>`;
     return;
   }
-  botBody.innerHTML = state.bots.map((b,i)=>`
+  botBody.innerHTML = bots.map((b,i)=>`
     <tr>
       <td><b>${b.name}</b></td>
       <td>${b.balance.toLocaleString()}P</td>
@@ -566,39 +683,19 @@ function renderPoints(){
   `).join('');
 }
 
-function adjustPlayerPoints(sign){
-  if(!state || !state.nickname){ showToast('플레이어가 없습니다.'); return; }
-  const amt = Number(document.getElementById('playerAdjustAmt').value)||0;
-  if(amt<=0){ showToast('조정할 포인트를 입력해주세요.'); return; }
-  state.balance = Math.max(0, state.balance + sign*amt);
-  saveState();
-  renderPoints();
-  showToast(sign>0 ? `${amt.toLocaleString()}P 지급했습니다.` : `${amt.toLocaleString()}P 차감했습니다.`);
-}
-
-function resetPlayerPoints(){
-  if(!state) return;
-  const settings = loadSettings();
-  if(!confirm(`보유 포인트를 시작 포인트(${settings.startingBalance.toLocaleString()}P)로 초기화할까요?`)) return;
-  state.balance = settings.startingBalance;
-  saveState();
-  renderPoints();
-  showToast('포인트를 초기화했습니다.');
-}
-
 function adjustBotPoints(i, sign){
   const amt = Number(document.getElementById('bot-adjust-'+i).value)||0;
   if(amt<=0){ showToast('조정할 포인트를 입력해주세요.'); return; }
-  state.bots[i].balance = Math.max(0, state.bots[i].balance + sign*amt);
-  saveState();
-  renderPoints();
+  bots[i].balance = Math.max(0, bots[i].balance + sign*amt);
+  saveBots(bots);
+  renderBotTable();
 }
 
 function deleteBot(i){
-  if(!confirm(`"${state.bots[i].name}" 봇을 삭제할까요?`)) return;
-  state.bots.splice(i,1);
-  saveState();
-  renderPoints();
+  if(!confirm(`"${bots[i].name}" 봇을 삭제할까요?`)) return;
+  bots.splice(i,1);
+  saveBots(bots);
+  renderBotTable();
 }
 
 function addBot(){
@@ -606,32 +703,49 @@ function addBot(){
   if(!name) return;
   const trimmed = name.trim().slice(0,10);
   if(!trimmed) return;
-  if(!state) return;
-  state.bots.push({name:trimmed, avatar:trimmed.slice(0,1), balance:10000, wins:0, total:0});
-  saveState();
-  renderPoints();
+  bots.push({name:trimmed, avatar:trimmed.slice(0,1), balance:10000, wins:0, total:0});
+  saveBots(bots);
+  renderBotTable();
   showToast('봇을 추가했습니다.');
 }
 
 /* ===================== 배팅 관리 ===================== */
+function renderBetsProfileSelect(){
+  const sel = document.getElementById('betsProfileSelect');
+  const profiles = getProfiles();
+  if(profiles.length===0){
+    sel.innerHTML = `<option value="">프로필 없음</option>`;
+    selectedBetsProfile = '';
+    return;
+  }
+  if(!selectedBetsProfile || !profiles.includes(selectedBetsProfile)) selectedBetsProfile = profiles[0];
+  sel.innerHTML = profiles.map(name=>`<option value="${name}" ${name===selectedBetsProfile?'selected':''}>${name}</option>`).join('');
+}
+function onBetsProfileChange(){
+  selectedBetsProfile = document.getElementById('betsProfileSelect').value;
+  renderBets();
+}
+
 function renderBets(){
   const statEl = document.getElementById('betStats');
   const body = document.getElementById('betTableBody');
-  if(!state || state.history.length===0){
+  const ps = selectedBetsProfile ? loadProfileState(selectedBetsProfile) : null;
+
+  if(!ps || ps.history.length===0){
     statEl.innerHTML = '';
     body.innerHTML = `<tr><td colspan="7"><div class="empty-state">베팅 기록이 없습니다.</div></td></tr>`;
     return;
   }
-  const pending = state.history.filter(h=>h.result==='pending');
-  const wins = state.history.filter(h=>h.result==='win');
+  const pending = ps.history.filter(h=>h.result==='pending');
+  const wins = ps.history.filter(h=>h.result==='win');
   const exposure = pending.reduce((s,h)=>s+h.stake,0);
   statEl.innerHTML = `
-    <div class="stat-card"><div class="lab">총 베팅 수</div><div class="val">${state.history.length}</div></div>
+    <div class="stat-card"><div class="lab">총 베팅 수</div><div class="val">${ps.history.length}</div></div>
     <div class="stat-card"><div class="lab">대기중 베팅</div><div class="val">${pending.length}</div></div>
     <div class="stat-card"><div class="lab">대기중 스테이크 합계</div><div class="val">${exposure.toLocaleString()}P</div></div>
-    <div class="stat-card"><div class="lab">적중률</div><div class="val">${state.history.length? Math.round(wins.length/state.history.length*100):0}%</div></div>
+    <div class="stat-card"><div class="lab">적중률</div><div class="val">${ps.history.length? Math.round(wins.length/ps.history.length*100):0}%</div></div>
   `;
-  body.innerHTML = state.history.map(h=>{
+  body.innerHTML = ps.history.map(h=>{
     const pillCls = h.result==='win'?'win':h.result==='lose'?'lose':'pending';
     const pillText = h.result==='win'?'적중':h.result==='lose'?'실패':'대기중';
     const deltaText = h.result==='pending' ? '-' : (h.delta>0?'+':'')+h.delta.toLocaleString()+'P';
@@ -653,20 +767,24 @@ function renderBets(){
 }
 
 function voidBet(id){
-  const h = state.history.find(x=>x.id===id);
+  if(!selectedBetsProfile) return;
+  const ps = loadProfileState(selectedBetsProfile);
+  const h = ps.history.find(x=>x.id===id);
   if(!h || h.result!=='pending') return;
   if(!confirm('이 베팅을 취소하고 스테이크를 환불할까요?')) return;
-  state.balance += h.stake;
-  state.history = state.history.filter(x=>x.id!==id);
-  saveState();
+  ps.balance += h.stake;
+  ps.history = ps.history.filter(x=>x.id!==id);
+  saveProfileState(selectedBetsProfile, ps);
   renderBets();
   showToast('베팅을 취소하고 환불했습니다.');
 }
 
 function deleteBet(id){
+  if(!selectedBetsProfile) return;
   if(!confirm('이 베팅 기록을 삭제할까요? (포인트는 환불되지 않습니다)')) return;
-  state.history = state.history.filter(x=>x.id!==id);
-  saveState();
+  const ps = loadProfileState(selectedBetsProfile);
+  ps.history = ps.history.filter(x=>x.id!==id);
+  saveProfileState(selectedBetsProfile, ps);
   renderBets();
 }
 
@@ -691,23 +809,23 @@ function saveSettingsForm(){
 }
 
 function factoryReset(){
-  if(!confirm('정말로 모든 데이터를 초기화할까요? 경기, 포인트, 베팅 기록, 설정이 모두 삭제되며 되돌릴 수 없습니다.')) return;
-  localStorage.removeItem(STORE_KEY);
-  localStorage.removeItem(MATCHES_KEY);
-  localStorage.removeItem(SETTINGS_KEY);
+  if(!confirm('정말로 모든 데이터를 초기화할까요? 경기, 모든 프로필, 베팅 기록, 봇, 설정이 모두 삭제되며 되돌릴 수 없습니다.')) return;
+  Object.keys(localStorage).forEach(k=>{
+    if(k.startsWith('pickplay_')) localStorage.removeItem(k);
+  });
   showToast('모든 데이터를 초기화했습니다.');
   setTimeout(()=>location.reload(), 600);
 }
 
 /* ===================== 전체 렌더 ===================== */
 function refreshAll(){
-  state = loadState();
   MATCHES = loadMatches();
-  if(!state){
-    state = {nickname:'', balance:0, history:[], bots:[]};
-  }
+  bots = loadBots();
   renderMatches();
-  renderPoints();
+  renderProfileTable();
+  renderPointsBlock();
+  renderBotTable();
+  renderBetsProfileSelect();
   renderBets();
   renderSettings();
 }

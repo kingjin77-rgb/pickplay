@@ -46,7 +46,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);position:
 .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .balance-pill{display:flex;align-items:center;gap:8px;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:7px 14px;font-weight:700;font-size:13px}
 .balance-pill span.amt{font-size:15px}
-.nick-pill{background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:7px 14px;font-weight:600;color:var(--ink2);font-size:13px;display:flex;align-items:center;gap:6px}
+.nick-pill{background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:7px 14px;font-weight:600;color:var(--ink2);font-size:13px;display:flex;align-items:center;gap:6px;transition:var(--tr)}
+.nick-pill:hover{border-color:var(--brand2);color:var(--brand)}
 .btn-sim{background:linear-gradient(135deg,#FF9A3D,#FF6B6B);color:#fff;font-weight:700;font-size:12.5px;border-radius:999px;padding:8px 14px;box-shadow:var(--sh);transition:var(--tr)}
 .btn-sim:hover{transform:translateY(-1px);box-shadow:var(--sh-md)}
 .btn-sim:disabled{opacity:.45;cursor:default;transform:none}
@@ -104,7 +105,17 @@ nav.tabs button:hover{color:var(--brand2)}
 .my-pred-tag.win{background:var(--green-soft);color:var(--green)}
 .my-pred-tag.lose{background:var(--red-soft);color:var(--red)}
 
-/* ===== 모달 ===== */
+/* ===== 예측 비율(데모) ===== */
+.ratio-wrap{margin-top:10px}
+.ratio-label{font-size:10.5px;color:var(--ink4);font-weight:700;margin-bottom:4px}
+.ratio-bar{display:flex;height:7px;border-radius:999px;overflow:hidden;background:var(--surface2)}
+.ratio-seg{height:100%}
+.ratio-seg.home{background:var(--brand2)}
+.ratio-seg.draw{background:var(--ink4)}
+.ratio-seg.away{background:var(--accent)}
+.ratio-nums{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink4);margin-top:3px;font-weight:600}
+
+/* ===== 모달(공용) ===== */
 .overlay{position:fixed;inset:0;background:rgba(17,24,39,.5);display:none;align-items:center;justify-content:center;z-index:500;padding:20px}
 .overlay.on{display:flex}
 .modal{background:var(--surface);border-radius:var(--r-lg);padding:22px;max-width:360px;width:100%;box-shadow:var(--sh-md)}
@@ -124,7 +135,21 @@ nav.tabs button:hover{color:var(--brand2)}
 .btn-confirm:disabled{opacity:.4}
 .err-msg{color:var(--red);font-size:12px;margin-top:8px;display:none}
 
+/* ===== 프로필 전환 모달 ===== */
+.profile-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;margin-bottom:14px}
+.profile-item{display:flex;align-items:center;gap:10px;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;transition:var(--tr)}
+.profile-item:hover{border-color:var(--brand2)}
+.profile-item.active{border-color:var(--brand);background:var(--brand-soft)}
+.profile-item .p-avatar{width:32px;height:32px;border-radius:50%;background:var(--ink5);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:var(--ink2);flex-shrink:0}
+.profile-item .p-info{flex:1;min-width:0;cursor:pointer}
+.profile-item .p-name{font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:6px}
+.profile-item .p-bal{font-size:11.5px;color:var(--ink4);margin-top:1px}
+.profile-item .p-del{color:var(--ink4);font-size:11px;padding:4px 8px;border-radius:6px}
+.profile-item .p-del:hover{color:var(--red);background:var(--red-soft)}
+.profile-hint{font-size:11.5px;color:var(--ink4);line-height:1.6;margin-bottom:10px}
+
 /* ===== 리더보드 ===== */
+.board-toggle{display:flex;gap:8px;margin-bottom:14px}
 .board{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh)}
 .board-row{display:grid;grid-template-columns:44px 1fr 110px 90px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--border);font-size:13.5px}
 .board-row:last-child{border-bottom:none}
@@ -137,14 +162,25 @@ nav.tabs button:hover{color:var(--brand2)}
 .player-cell{display:flex;align-items:center;gap:10px;font-weight:700}
 .player-avatar{width:30px;height:30px;border-radius:50%;background:var(--ink5);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--ink2)}
 .me-badge{background:var(--brand);color:#fff;font-size:10px;padding:1px 6px;border-radius:5px;margin-left:6px}
+.bot-badge{background:var(--surface2);color:var(--ink4);font-size:10px;padding:1px 6px;border-radius:5px;margin-left:6px;border:1px solid var(--border)}
 .pts-cell{font-weight:800;color:var(--ink)}
+.pts-cell.neg{color:var(--red)}
 .winrate-cell{color:var(--ink3)}
+.board-note{font-size:11.5px;color:var(--ink4);margin-top:10px;line-height:1.6}
 
 /* ===== 내 기록 ===== */
 .summary-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
 .sum-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)}
 .sum-card .lab{font-size:11.5px;color:var(--ink4);font-weight:700;margin-bottom:5px}
 .sum-card .val{font-size:19px;font-weight:800;color:var(--ink)}
+.section-title{font-size:14px;font-weight:800;margin:22px 0 10px}
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:6px}
+.badge-chip{border:1.5px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;background:var(--surface)}
+.badge-chip .b-ic{font-size:22px;margin-bottom:4px}
+.badge-chip .b-lab{font-size:11.5px;font-weight:700;color:var(--ink3)}
+.badge-chip.earned{border-color:var(--gold);background:var(--gold-soft)}
+.badge-chip.earned .b-lab{color:#8A6100}
+.badge-chip.locked{opacity:.45}
 .hist-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .hist-left .h-match{font-weight:700;font-size:13.5px}
 .hist-left .h-sub{font-size:11.5px;color:var(--ink4);margin-top:2px}
@@ -172,6 +208,7 @@ nav.tabs button:hover{color:var(--brand2)}
 .gate-card .g-sub{font-size:12.5px;color:var(--ink3);margin-bottom:22px;line-height:1.6}
 .gate-card input{width:100%;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;font-size:14px;text-align:center;margin-bottom:12px}
 .gate-card button{width:100%;background:var(--brand);color:#fff;padding:12px 0;border-radius:var(--r-sm);font-weight:700;font-size:14.5px}
+.gate-card .g-cancel{background:none;color:var(--ink4);font-weight:600;font-size:12.5px;margin-top:12px;padding:4px}
 
 @media(max-width:640px){
   .summary-cards{grid-template-columns:1fr 1fr}
@@ -187,9 +224,10 @@ nav.tabs button:hover{color:var(--brand2)}
 <div class="gate" id="gate">
   <div class="gate-card">
     <div class="g-logo">🏆 PICKPLAY</div>
-    <div class="g-sub">실제 현금이 오가지 않는 <b>가상 포인트</b> 승부예측 게임입니다.<br>닉네임을 입력하고 10,000P로 시작해보세요.</div>
+    <div class="g-sub" id="gateSub">실제 현금이 오가지 않는 <b>가상 포인트</b> 승부예측 게임입니다.<br>닉네임을 입력하고 10,000P로 시작해보세요.</div>
     <input id="nickInput" maxlength="10" placeholder="닉네임 입력 (최대 10자)">
     <button onclick="startGame()">시작하기</button>
+    <button class="g-cancel" id="gateCancelBtn" style="display:none" onclick="closeGate()">취소</button>
   </div>
 </div>
 
@@ -201,7 +239,7 @@ nav.tabs button:hover{color:var(--brand2)}
     <div class="header-right">
       <button class="btn-share" id="shareBtn" onclick="shareSite()">🔗 공유하기</button>
       <button class="btn-sim" id="simBtn" onclick="simulateResults()">🎲 결과 시뮬레이션 (데모)</button>
-      <div class="nick-pill" id="nickPill">👤 -</div>
+      <button class="nick-pill" id="nickPill" onclick="openProfileModal()">👤 -</button>
       <div class="balance-pill">P <span class="amt" id="balanceDisplay">0</span></div>
     </div>
   </div>
@@ -223,12 +261,17 @@ nav.tabs button:hover{color:var(--brand2)}
 
   <!-- 리더보드 -->
   <div class="view" id="view-board">
+    <div class="board-toggle" id="boardToggle">
+      <button class="chip on" data-period="all" onclick="setBoardPeriod('all')">전체 랭킹</button>
+      <button class="chip" data-period="week" onclick="setBoardPeriod('week')">이번 주 랭킹</button>
+    </div>
     <div class="board">
       <div class="board-row head">
-        <div>순위</div><div>플레이어</div><div>보유 포인트</div><div>적중률</div>
+        <div>순위</div><div>플레이어</div><div id="boardColHead">보유 포인트</div><div>적중률</div>
       </div>
       <div id="boardBody"></div>
     </div>
+    <div class="board-note" id="boardNote"></div>
   </div>
 
   <!-- 내 기록 -->
@@ -238,15 +281,18 @@ nav.tabs button:hover{color:var(--brand2)}
       <div class="sum-card"><div class="lab">총 예측 수</div><div class="val" id="sumCount">0</div></div>
       <div class="sum-card"><div class="lab">적중률</div><div class="val" id="sumRate">0%</div></div>
     </div>
+    <div class="section-title">달성 배지</div>
+    <div class="badge-grid" id="badgeGrid"></div>
+    <div class="section-title">예측 기록</div>
     <div id="historyList"></div>
-    <a class="reset-link" onclick="resetGame()">전체 초기화 (닉네임·포인트·기록 리셋)</a>
+    <a class="reset-link" onclick="resetGame()">현재 프로필 초기화 (포인트·기록 리셋)</a>
   </div>
 
   <!-- 소개 -->
   <div class="view" id="view-about">
     <div class="about-card">
       <h3>PICKPLAY란?</h3>
-      <p>PICKPLAY는 실제 돈이 오가지 않는 <b>가상 포인트 기반 스포츠 승부예측 게임</b>입니다. 축구·야구·e스포츠 등 다양한 종목의 경기를 예측해보고, 친구들과 순위를 겨루며 재미로 즐기는 서비스입니다.</p>
+      <p>PICKPLAY는 실제 돈이 오가지 않는 <b>가상 포인트 기반 스포츠 승부예측 게임</b>입니다. 축구·야구·농구·배구·e스포츠 등 다양한 종목의 경기를 예측해보고, 친구들과 순위를 겨루며 재미로 즐기는 서비스입니다.</p>
     </div>
     <div class="about-card">
       <h3>이용 안내</h3>
@@ -254,7 +300,9 @@ nav.tabs button:hover{color:var(--brand2)}
         <li>모든 포인트는 <b>가상 재화</b>이며 실제 현금으로 충전하거나 환전할 수 없습니다.</li>
         <li>누구나 10,000P로 시작하며, 예측이 맞으면 배율만큼 포인트를 얻고 틀리면 걸었던 포인트를 잃습니다.</li>
         <li>경기 데이터는 데모용 샘플이며, 상단 "결과 시뮬레이션" 버튼으로 결과를 즉시 확인할 수 있습니다.</li>
-        <li>우측 상단 "🔗 공유하기" 버튼으로 친구에게 초대 링크를 보낼 수 있지만, 현재는 각자 브라우저에 저장되는 개인 기록이라 실시간으로 같은 순위표를 공유하지는 않습니다.</li>
+        <li>경기 카드의 "예측 비율"은 실제 다른 이용자의 베팅 데이터가 아니라, 이 기기에 저장된 가상 봇 데이터를 기반으로 한 참고용 데모 수치입니다.</li>
+        <li><b>👤 프로필</b> 버튼으로 같은 기기(브라우저)에서 여러 개의 닉네임(프로필)을 만들어 전환할 수 있고, 리더보드에는 이 기기에서 만든 모든 프로필이 함께 표시됩니다. 다만 다른 사람의 기기와는 데이터가 연결되지 않으므로, 진짜 친구와 순위를 겨루려면 같은 기기를 함께 쓰거나 같은 링크를 각자 브라우저에서 열어야 합니다 (그 경우 리더보드는 기기별로 따로 집계됩니다).</li>
+        <li>실시간 채팅/댓글처럼 여러 사람이 동시에 데이터를 주고받는 기능은 서버가 있어야 가능해서 이 데모에는 포함하지 않았습니다.</li>
         <li>실제 서비스로 확장 시에는 실시간 경기 결과 API와 회원별 계정·서버 기반 리더보드를 연동할 수 있습니다.</li>
         <li>본 서비스는 오락 목적이며 사행성 콘텐츠가 아닙니다.</li>
       </ul>
@@ -296,12 +344,27 @@ nav.tabs button:hover{color:var(--brand2)}
   </div>
 </div>
 
+<!-- 프로필 전환 모달 -->
+<div class="overlay" id="profileOverlay">
+  <div class="modal">
+    <h3>프로필 전환</h3>
+    <div class="profile-hint">같은 기기(브라우저)에서 여러 명이 각자 프로필을 만들어 쓸 수 있어요. 리더보드에는 이 기기에서 만든 모든 프로필이 함께 표시됩니다.</div>
+    <div class="profile-list" id="profileList"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeProfileModal()">닫기</button>
+      <button class="btn-confirm" onclick="openNewProfileGate()">+ 새 프로필 만들기</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ===================== 데이터 ===================== */
 const SPORTS = [
   {key:'all', label:'전체'},
   {key:'soccer', label:'⚽ 축구'},
   {key:'baseball', label:'⚾ 야구'},
+  {key:'basketball', label:'🏀 농구'},
+  {key:'volleyball', label:'🏐 배구'},
   {key:'esports', label:'🎮 e스포츠'},
 ];
 
@@ -318,17 +381,26 @@ const DEFAULT_MATCHES = [
   {id:'m10', sport:'esports', league:'LCK', home:'한화생명e스포츠', away:'디플러스기아', kickoff:'2026-08-21 17:00', odds:{home:2.5, away:1.55}},
   {id:'m11', sport:'soccer', league:'K리그1', home:'포항스틸러스', away:'광주FC', kickoff:'2026-08-21 19:00', odds:{home:1.9, draw:3.2, away:3.7}},
   {id:'m12', sport:'baseball', league:'KBO', home:'두산베어스', away:'KIA타이거즈', kickoff:'2026-08-22 18:30', odds:{home:2.0, away:1.85}},
+  {id:'m13', sport:'basketball', league:'KBL', home:'서울SK나이츠', away:'안양정관장', kickoff:'2026-08-19 19:00', odds:{home:1.85, away:1.95}},
+  {id:'m14', sport:'basketball', league:'KBL', home:'창원LG', away:'수원KT', kickoff:'2026-08-21 19:00', odds:{home:2.0, away:1.8}},
+  {id:'m15', sport:'volleyball', league:'V리그', home:'대한항공', away:'현대캐피탈', kickoff:'2026-08-18 19:00', odds:{home:1.7, away:2.1}},
+  {id:'m16', sport:'volleyball', league:'V리그', home:'흥국생명', away:'GS칼텍스', kickoff:'2026-08-20 19:00', odds:{home:1.9, away:1.9}},
 ];
 
-/* ===================== 공용 저장소 (경기·설정은 관리자 페이지와 공유) ===================== */
-const STORE_KEY = 'pickplay_state_v1';
+/* ===================== 공용 저장소 (경기·설정·봇은 관리자 페이지와 공유) ===================== */
 const MATCHES_KEY = 'pickplay_matches_v1';
 const SETTINGS_KEY = 'pickplay_settings_v1';
+const BOTS_KEY = 'pickplay_bots_v1';
+const PROFILES_KEY = 'pickplay_profiles_v1';
+const ACTIVE_KEY = 'pickplay_active_profile_v1';
+const LEGACY_STATE_KEY = 'pickplay_state_v1';
 const DEFAULT_SETTINGS = {startingBalance:10000, minStake:100, maxStake:100000};
 
-let state = null;
+let state = null;       // {nickname, balance, history} for the active profile
+let bots = [];
 let MATCHES = [];
 let currentSport = 'all';
+let boardPeriod = 'all';
 let modalCtx = null;
 
 const BOTS_SEED = [
@@ -361,24 +433,57 @@ function saveMatches(matches){
   localStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
 }
 
-function defaultState(settings){
-  return {
-    nickname: '',
-    balance: settings.startingBalance,
-    history: [], // {id, matchId, pick, stake, multiplier, result:'pending'|'win'|'lose', delta}
-    bots: BOTS_SEED.map(b=>({...b, balance: 8000 + Math.floor(Math.random()*6000), wins:Math.floor(Math.random()*8), total:Math.floor(6+Math.random()*10)})),
-  };
-}
-
-function loadState(){
+function loadBots(){
   try{
-    const raw = localStorage.getItem(STORE_KEY);
+    const raw = localStorage.getItem(BOTS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  const seeded = BOTS_SEED.map(b=>({...b, balance: 8000 + Math.floor(Math.random()*6000), wins:Math.floor(Math.random()*8), total:Math.floor(6+Math.random()*10)}));
+  localStorage.setItem(BOTS_KEY, JSON.stringify(seeded));
+  return seeded;
+}
+function saveBots(list){ localStorage.setItem(BOTS_KEY, JSON.stringify(list)); }
+
+/* ===================== 프로필(닉네임) 저장소 ===================== */
+function getProfiles(){
+  try{ return JSON.parse(localStorage.getItem(PROFILES_KEY)) || []; }catch(e){ return []; }
+}
+function saveProfiles(list){ localStorage.setItem(PROFILES_KEY, JSON.stringify(list)); }
+function getActiveProfileName(){ return localStorage.getItem(ACTIVE_KEY) || ''; }
+function setActiveProfileName(name){ localStorage.setItem(ACTIVE_KEY, name); }
+function profileStateKey(name){ return 'pickplay_profile_v1__' + name; }
+function loadProfileState(name){
+  try{
+    const raw = localStorage.getItem(profileStateKey(name));
     if(raw) return JSON.parse(raw);
   }catch(e){}
   return null;
 }
+function saveProfileState(name, s){ localStorage.setItem(profileStateKey(name), JSON.stringify(s)); }
+function deleteProfileState(name){ localStorage.removeItem(profileStateKey(name)); }
+
+function migrateLegacyIfNeeded(){
+  const raw = localStorage.getItem(LEGACY_STATE_KEY);
+  if(!raw) return;
+  try{
+    const legacy = JSON.parse(raw);
+    if(legacy && legacy.nickname){
+      const profiles = getProfiles();
+      if(!profiles.includes(legacy.nickname)){ profiles.push(legacy.nickname); saveProfiles(profiles); }
+      if(!loadProfileState(legacy.nickname)){
+        saveProfileState(legacy.nickname, {balance: legacy.balance, history: legacy.history || []});
+      }
+      if(!getActiveProfileName()) setActiveProfileName(legacy.nickname);
+      if(legacy.bots && legacy.bots.length && !localStorage.getItem(BOTS_KEY)){
+        saveBots(legacy.bots);
+      }
+    }
+  }catch(e){}
+  localStorage.removeItem(LEGACY_STATE_KEY);
+}
+
 function saveState(){
-  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  saveProfileState(state.nickname, {balance: state.balance, history: state.history});
 }
 
 /* ===================== 경기 결과가 반영된 대기중 예측 정산 ===================== */
@@ -405,32 +510,67 @@ function settlePendingPredictions(){
 
 /* ===================== 초기화 / 게이트 ===================== */
 function init(){
-  state = loadState();
+  migrateLegacyIfNeeded();
   MATCHES = loadMatches();
-  if(state && state.nickname){
-    settlePendingPredictions();
+  bots = loadBots();
+
+  const active = getActiveProfileName();
+  if(active && loadProfileState(active)){
+    loadActiveProfile(active);
     document.getElementById('gate').style.display = 'none';
     renderAll();
   } else {
+    document.getElementById('gateCancelBtn').style.display = 'none';
     document.getElementById('gate').style.display = 'flex';
   }
   renderSportChips();
 }
 
+function loadActiveProfile(name){
+  const ps = loadProfileState(name);
+  state = {nickname: name, balance: ps.balance, history: ps.history};
+  setActiveProfileName(name);
+  settlePendingPredictions();
+}
+
 function startGame(){
   const val = document.getElementById('nickInput').value.trim();
-  const nickname = val || ('게스트' + Math.floor(1000+Math.random()*9000));
-  state = defaultState(loadSettings());
-  state.nickname = nickname;
+  let nickname = val || ('게스트' + Math.floor(1000+Math.random()*9000));
+  const profiles = getProfiles();
+  if(profiles.includes(nickname)){
+    let i = 2;
+    while(profiles.includes(nickname + i)) i++;
+    nickname = nickname + i;
+  }
+  profiles.push(nickname);
+  saveProfiles(profiles);
+  state = {nickname, balance: loadSettings().startingBalance, history: []};
   saveState();
+  setActiveProfileName(nickname);
   document.getElementById('gate').style.display = 'none';
+  closeProfileModal();
   renderAll();
 }
 
+function closeGate(){
+  if(getProfiles().length===0) return; // 프로필이 하나도 없으면 취소 불가
+  document.getElementById('gate').style.display = 'none';
+}
+
+function openNewProfileGate(){
+  closeProfileModal();
+  document.getElementById('nickInput').value = '';
+  document.getElementById('gateSub').innerHTML = '이 기기에 새로운 프로필을 추가합니다.<br>닉네임을 입력하고 10,000P로 시작해보세요.';
+  document.getElementById('gateCancelBtn').style.display = getProfiles().length>0 ? 'block' : 'none';
+  document.getElementById('gate').style.display = 'flex';
+}
+
 function resetGame(){
-  if(!confirm('닉네임, 포인트, 예측 기록이 모두 초기화됩니다. 계속할까요?')) return;
-  localStorage.removeItem(STORE_KEY);
-  location.reload();
+  if(!confirm(`"${state.nickname}" 프로필의 포인트와 예측 기록이 초기화됩니다. 계속할까요?`)) return;
+  state.balance = loadSettings().startingBalance;
+  state.history = [];
+  saveState();
+  renderAll();
 }
 
 /* ===================== 토스트 / 공유 ===================== */
@@ -467,14 +607,66 @@ async function shareSite(){
   window.prompt('아래 내용을 복사해서 친구에게 공유하세요', shareText);
 }
 
+/* ===================== 프로필 전환 모달 ===================== */
+function openProfileModal(){
+  renderProfileList();
+  document.getElementById('profileOverlay').classList.add('on');
+}
+function closeProfileModal(){
+  document.getElementById('profileOverlay').classList.remove('on');
+}
+function renderProfileList(){
+  const el = document.getElementById('profileList');
+  const profiles = getProfiles();
+  if(profiles.length===0){
+    el.innerHTML = `<div class="empty-state" style="padding:20px"><div class="ic">👤</div>아직 프로필이 없습니다.</div>`;
+    return;
+  }
+  el.innerHTML = profiles.map(name=>{
+    const ps = loadProfileState(name) || {balance:0, history:[]};
+    const isActive = name===state.nickname;
+    return `<div class="profile-item ${isActive?'active':''}">
+      <div class="p-avatar">${name.slice(0,1)}</div>
+      <div class="p-info" onclick="switchProfile('${name}')">
+        <div class="p-name">${name} ${isActive?'<span class="me-badge">현재</span>':''}</div>
+        <div class="p-bal">${ps.balance.toLocaleString()}P · 예측 ${ps.history.length}회</div>
+      </div>
+      ${profiles.length>1 ? `<button class="p-del" onclick="deleteProfile('${name}')">삭제</button>` : ''}
+    </div>`;
+  }).join('');
+}
+function switchProfile(name){
+  if(name===state.nickname){ closeProfileModal(); return; }
+  loadActiveProfile(name);
+  closeProfileModal();
+  renderAll();
+  showToast(`"${name}" 프로필로 전환했습니다.`);
+}
+function deleteProfile(name){
+  const profiles = getProfiles();
+  if(profiles.length<=1) return;
+  if(!confirm(`"${name}" 프로필을 삭제할까요? 해당 프로필의 포인트·기록이 모두 사라집니다.`)) return;
+  const remaining = profiles.filter(p=>p!==name);
+  saveProfiles(remaining);
+  deleteProfileState(name);
+  if(state.nickname===name){
+    loadActiveProfile(remaining[0]);
+    renderAll();
+  }
+  renderProfileList();
+  showToast('프로필을 삭제했습니다.');
+}
+
 /* ===================== 탭 ===================== */
 function switchTab(tab){
   document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on', b.dataset.tab===tab));
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   document.getElementById('view-'+tab).classList.add('on');
   // 관리자 페이지에서 경기·포인트가 바뀌었을 수 있으므로 탭 전환 시마다 최신 데이터를 다시 불러온다
-  state = loadState() || state;
+  const ps = loadProfileState(state.nickname);
+  if(ps) state = {nickname: state.nickname, balance: ps.balance, history: ps.history};
   MATCHES = loadMatches();
+  bots = loadBots();
   settlePendingPredictions();
   document.getElementById('balanceDisplay').textContent = state.balance.toLocaleString();
   if(tab==='matches') renderMatches();
@@ -504,6 +696,32 @@ function myPredictionFor(matchId){
   return state.history.find(h=>h.matchId===matchId);
 }
 
+/* 예측 비율(데모): 실 크로우드 데이터가 없어 봇 + 이 기기의 프로필 픽만으로 계산하는 참고용 수치 */
+function simulatedBotPick(bot, match, keys){
+  let seed = 0;
+  const str = bot.name + match.id;
+  for(let i=0;i<str.length;i++) seed = (seed*31 + str.charCodeAt(i)) >>> 0;
+  const implied = keys.map(k=>1/match.odds[k]);
+  const sum = implied.reduce((a,b)=>a+b,0);
+  let r = (seed % 10000)/10000 * sum;
+  for(let i=0;i<keys.length;i++){ r -= implied[i]; if(r<=0) return keys[i]; }
+  return keys[keys.length-1];
+}
+function pickRatio(match, keys){
+  const counts = {}; keys.forEach(k=> counts[k]=0);
+  bots.forEach(b=>{ counts[simulatedBotPick(b, match, keys)]++; });
+  getProfiles().forEach(name=>{
+    const ps = loadProfileState(name);
+    if(!ps) return;
+    const h = ps.history.find(x=>x.matchId===match.id);
+    if(h && counts[h.pick]!==undefined) counts[h.pick]++;
+  });
+  const total = keys.reduce((s,k)=>s+counts[k],0) || 1;
+  const pct = {};
+  keys.forEach(k=> pct[k] = Math.round(counts[k]/total*100));
+  return pct;
+}
+
 function renderMatches(){
   const grid = document.getElementById('matchGrid');
   const list = MATCHES.filter(m=> currentSport==='all' || m.sport===currentSport);
@@ -517,8 +735,7 @@ function renderMatches(){
       let cls = 'pick-btn';
       if(mine && mine.pick===k) cls += ' picked';
       if(resolved){
-        if(k===resolved && mine && mine.pick===k) cls += ' correct';
-        else if(k===resolved) cls += ' correct';
+        if(k===resolved) cls += ' correct';
         else if(mine && mine.pick===k) cls += ' wrong';
       }
       const disabled = (!!mine || !!resolved) ? 'disabled' : '';
@@ -527,6 +744,15 @@ function renderMatches(){
         <div class="pmult">${m.odds[k].toFixed(2)}배</div>
       </button>`;
     }).join('');
+
+    const ratio = pickRatio(m, keys);
+    const ratioBar = keys.map(k=>`<div class="ratio-seg ${k}" style="width:${ratio[k]}%"></div>`).join('');
+    const ratioNums = keys.map(k=>`<span>${outcomeLabel(m.sport,k,m.home,m.away)} ${ratio[k]}%</span>`).join('');
+    const ratioHtml = `<div class="ratio-wrap">
+      <div class="ratio-label">예측 비율 (이 기기 기준 · 데모)</div>
+      <div class="ratio-bar">${ratioBar}</div>
+      <div class="ratio-nums">${ratioNums}</div>
+    </div>`;
 
     let tagHtml = '';
     if(mine){
@@ -550,6 +776,7 @@ function renderMatches(){
         <div class="team"><div class="team-avatar">${m.away.slice(0,1)}</div><div class="team-name">${m.away}</div></div>
       </div>
       <div class="pick-row ${isSoccer?'p3':'p2'}">${picksHtml}</div>
+      ${ratioHtml}
       ${tagHtml}
     </div>`;
   }).join('');
@@ -634,39 +861,103 @@ function simulateResults(){
   settlePendingPredictions();
 
   // 봇 리더보드도 자연스럽게 변동
-  state.bots.forEach(b=>{
+  bots = loadBots();
+  bots.forEach(b=>{
     const change = Math.floor((Math.random()-0.45)*1200);
     b.balance = Math.max(0, b.balance + change);
     b.total += 1;
     if(change>0) b.wins += 1;
   });
+  saveBots(bots);
 
   saveState();
   renderAll();
 }
 
 /* ===================== 리더보드 ===================== */
+function setBoardPeriod(period){
+  boardPeriod = period;
+  document.querySelectorAll('#boardToggle .chip').forEach(b=>b.classList.toggle('on', b.dataset.period===period));
+  renderBoard();
+}
+
+function weeklyDelta(history){
+  const weekMs = 7*24*60*60*1000;
+  const cutoff = Date.now() - weekMs;
+  return history.reduce((sum,h)=>{
+    if(h.result==='pending') return sum;
+    const ts = Number((h.id||'h0').slice(1)) || 0;
+    if(ts < cutoff) return sum;
+    return sum + (h.delta||0);
+  }, 0);
+}
+
 function renderBoard(){
-  const myTotal = state.history.length;
-  const myWins = state.history.filter(h=>h.result==='win').length;
-  const myRate = myTotal? Math.round(myWins/myTotal*100) : 0;
+  const colHead = document.getElementById('boardColHead');
+  const noteEl = document.getElementById('boardNote');
+  const profiles = getProfiles();
 
-  const players = [
-    {name: state.nickname, avatar: state.nickname.slice(0,1), balance: state.balance, rate: myRate, me:true},
-    ...state.bots.map(b=>({name:b.name, avatar:b.avatar, balance:b.balance, rate: b.total? Math.round(b.wins/b.total*100):0, me:false}))
-  ].sort((a,b)=>b.balance-a.balance);
+  if(boardPeriod==='all'){
+    colHead.textContent = '보유 포인트';
+    noteEl.textContent = '이 기기(브라우저)에서 만든 프로필과 데모용 봇 플레이어가 함께 표시됩니다.';
+    const profilePlayers = profiles.map(name=>{
+      const ps = loadProfileState(name) || {balance:0, history:[]};
+      const total = ps.history.length;
+      const wins = ps.history.filter(h=>h.result==='win').length;
+      return {name, avatar:name.slice(0,1), balance: ps.balance, rate: total?Math.round(wins/total*100):0, me: name===state.nickname, bot:false};
+    });
+    const botPlayers = bots.map(b=>({name:b.name, avatar:b.avatar, balance:b.balance, rate: b.total?Math.round(b.wins/b.total*100):0, me:false, bot:true}));
+    const players = [...profilePlayers, ...botPlayers].sort((a,b)=>b.balance-a.balance);
+    paintBoard(players, p=>p.balance.toLocaleString()+'P', p=>p.balance<0);
+  } else {
+    colHead.textContent = '이번 주 획득 포인트';
+    noteEl.textContent = '지난 7일 안에 정산된 예측의 손익 합계입니다(예측 시점 기준 데모 집계). 봇 플레이어는 전체 랭킹에서만 표시됩니다.';
+    const players = profiles.map(name=>{
+      const ps = loadProfileState(name) || {balance:0, history:[]};
+      const total = ps.history.length;
+      const wins = ps.history.filter(h=>h.result==='win').length;
+      return {name, avatar:name.slice(0,1), weekly: weeklyDelta(ps.history), rate: total?Math.round(wins/total*100):0, me: name===state.nickname, bot:false};
+    }).sort((a,b)=>b.weekly-a.weekly);
+    paintBoard(players, p=>(p.weekly>0?'+':'')+p.weekly.toLocaleString()+'P', p=>p.weekly<0);
+  }
+}
 
+function paintBoard(players, fmt, isNeg){
   const body = document.getElementById('boardBody');
+  if(players.length===0){
+    body.innerHTML = `<div class="empty-state" style="padding:30px"><div class="ic">📊</div>표시할 데이터가 없습니다.</div>`;
+    return;
+  }
   body.innerHTML = players.map((p,i)=>{
     const rank = i+1;
     const rankCls = rank===1?'top1':rank===2?'top2':rank===3?'top3':'';
     return `<div class="board-row ${p.me?'me':''}">
       <div class="rank-num ${rankCls}">${rank}</div>
-      <div class="player-cell"><div class="player-avatar">${p.avatar}</div>${p.name}${p.me?'<span class="me-badge">나</span>':''}</div>
-      <div class="pts-cell">${p.balance.toLocaleString()}P</div>
+      <div class="player-cell"><div class="player-avatar">${p.avatar}</div>${p.name}${p.me?'<span class="me-badge">나</span>':''}${p.bot?'<span class="bot-badge">봇</span>':''}</div>
+      <div class="pts-cell ${isNeg(p)?'neg':''}">${fmt(p)}</div>
       <div class="winrate-cell">${p.rate}%</div>
     </div>`;
   }).join('');
+}
+
+/* ===================== 배지 ===================== */
+function hasWinStreak(history, n){
+  const settled = history.filter(h=>h.result!=='pending').slice().reverse(); // 오래된 순
+  let streak=0, max=0;
+  settled.forEach(h=>{ if(h.result==='win'){ streak++; max=Math.max(max,streak); } else streak=0; });
+  return max>=n;
+}
+function computeBadges(){
+  const totalStake = state.history.reduce((s,h)=>s+h.stake,0);
+  const wins = state.history.filter(h=>h.result==='win').length;
+  return [
+    {icon:'🎯', label:'첫 예측', earned: state.history.length>=1},
+    {icon:'🔥', label:'3연승 달성', earned: hasWinStreak(state.history,3)},
+    {icon:'💰', label:'누적 베팅 5,000P+', earned: totalStake>=5000},
+    {icon:'🏅', label:'적중 10회', earned: wins>=10},
+    {icon:'👑', label:'포인트 20,000P 돌파', earned: state.balance>=20000},
+    {icon:'🌈', label:'모든 종목 도전', earned: new Set(state.history.map(h=>MATCHES.find(m=>m.id===h.matchId)?.sport).filter(Boolean)).size>=3},
+  ];
 }
 
 /* ===================== 내 기록 ===================== */
@@ -676,6 +967,14 @@ function renderHistory(){
   const wins = state.history.filter(h=>h.result==='win').length;
   document.getElementById('sumCount').textContent = total;
   document.getElementById('sumRate').textContent = (total? Math.round(wins/total*100):0)+'%';
+
+  const badgeGrid = document.getElementById('badgeGrid');
+  badgeGrid.innerHTML = computeBadges().map(b=>`
+    <div class="badge-chip ${b.earned?'earned':'locked'}">
+      <div class="b-ic">${b.icon}</div>
+      <div class="b-lab">${b.label}</div>
+    </div>
+  `).join('');
 
   const listEl = document.getElementById('historyList');
   if(total===0){
