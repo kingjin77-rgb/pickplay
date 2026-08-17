@@ -134,6 +134,7 @@ tr.selected{background:var(--brand-soft)}
     <button class="on" data-tab="matches" onclick="switchTab('matches')">경기 관리</button>
     <button data-tab="points" onclick="switchTab('points')">포인트 관리</button>
     <button data-tab="bets" onclick="switchTab('bets')">배팅 관리</button>
+    <button data-tab="prizes" onclick="switchTab('prizes')">🎁 경품 관리</button>
     <button data-tab="settings" onclick="switchTab('settings')">설정</button>
   </nav>
 </header>
@@ -271,6 +272,59 @@ tr.selected{background:var(--brand-soft)}
     </div>
   </div>
 
+  <!-- ===== 경품 관리 ===== -->
+  <div class="view" id="view-prizes">
+    <div class="card">
+      <h3 id="prizeFormTitle">새 경품 추가</h3>
+      <div class="form-grid">
+        <div class="field">
+          <label>경품명</label>
+          <input id="pz-name" placeholder="예: 스타벅스 아메리카노">
+        </div>
+        <div class="field">
+          <label>필요 포인트</label>
+          <input id="pz-cost" type="number" min="1" step="100" value="1000">
+        </div>
+        <div class="field">
+          <label>재고 수량</label>
+          <input id="pz-stock" type="number" min="0" step="1" value="5">
+        </div>
+        <div class="field wide">
+          <label>설명 (선택)</label>
+          <input id="pz-desc" placeholder="예: 기프티콘으로 지급됩니다.">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="prizeSubmitBtn" onclick="submitPrizeForm()">경품 추가</button>
+        <button class="btn btn-ghost" id="prizeCancelBtn" style="display:none" onclick="resetPrizeForm()">취소</button>
+      </div>
+      <div class="hint" id="prizeFormErr" style="color:var(--red);display:none"></div>
+    </div>
+
+    <div class="section-head">
+      <div><h2>등록된 경품</h2></div>
+    </div>
+    <div class="table-wrap" style="margin-bottom:16px">
+      <table>
+        <thead><tr><th>경품명</th><th>필요 포인트</th><th>재고</th><th>관리</th></tr></thead>
+        <tbody id="prizeTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section-head">
+      <div>
+        <h2>교환 요청</h2>
+        <div class="desc">신청 시점에 포인트는 이미 차감된 상태입니다. 거절하면 포인트가 환불되고 재고가 복구됩니다.</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>시각</th><th>신청자</th><th>경품</th><th>포인트</th><th>상태</th><th>관리</th></tr></thead>
+        <tbody id="redemptionTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- ===== 설정 ===== -->
   <div class="view" id="view-settings">
     <div class="card">
@@ -297,7 +351,7 @@ tr.selected{background:var(--brand-soft)}
 
     <div class="card">
       <h3 style="color:var(--red)">위험 구역</h3>
-      <p class="hint" style="margin-bottom:12px">아래 작업은 되돌릴 수 없습니다. 이 브라우저에 저장된 모든 PICKPLAY 데이터(경기·모든 프로필·베팅 기록·봇·지급 이력·설정)가 삭제됩니다.</p>
+      <p class="hint" style="margin-bottom:12px">아래 작업은 되돌릴 수 없습니다. 이 브라우저에 저장된 모든 PICKPLAY 데이터(경기·모든 프로필·베팅 기록·봇·경품·교환 요청·지급 이력·설정)가 삭제됩니다.</p>
       <button class="btn btn-danger" onclick="factoryReset()">전체 데이터 초기화</button>
     </div>
   </div>
@@ -314,6 +368,14 @@ const PROFILES_KEY = 'pickplay_profiles_v1';
 const ACTIVE_KEY = 'pickplay_active_profile_v1';
 const AUDIT_KEY = 'pickplay_audit_log_v1';
 const AUDIT_MAX = 300;
+const PRIZES_KEY = 'pickplay_prizes_v1';
+const REDEMPTIONS_KEY = 'pickplay_redemptions_v1';
+
+const DEFAULT_PRIZES = [
+  {id:'p1', name:'스타벅스 아메리카노', cost:3000, stock:10, desc:'기프티콘으로 지급됩니다.'},
+  {id:'p2', name:'배달앱 1만원 상품권', cost:8000, stock:5, desc:''},
+  {id:'p3', name:'반차 사용권', cost:20000, stock:2, desc:'사내 특전 - 팀장 승인 후 사용 가능'},
+];
 const DEFAULT_SETTINGS = {startingBalance:10000, minStake:100, maxStake:100000};
 
 const BOTS_SEED = [
@@ -346,7 +408,9 @@ const DEFAULT_MATCHES = [
 
 let MATCHES = [];
 let bots = [];
+let prizes = [];
 let editingMatchId = null;
+let editingPrizeId = null;
 let selectedPointsProfile = '';
 let selectedBetsProfile = '';
 
@@ -394,6 +458,21 @@ function loadProfileState(name){
   return null;
 }
 function saveProfileState(name, s){ localStorage.setItem(profileStateKey(name), JSON.stringify(s)); }
+
+function loadPrizes(){
+  try{
+    const raw = localStorage.getItem(PRIZES_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  localStorage.setItem(PRIZES_KEY, JSON.stringify(DEFAULT_PRIZES));
+  return DEFAULT_PRIZES.map(p=>({...p}));
+}
+function savePrizes(list){ localStorage.setItem(PRIZES_KEY, JSON.stringify(list)); }
+
+function loadRedemptions(){
+  try{ return JSON.parse(localStorage.getItem(REDEMPTIONS_KEY)) || []; }catch(e){ return []; }
+}
+function saveRedemptions(list){ localStorage.setItem(REDEMPTIONS_KEY, JSON.stringify(list)); }
 
 /* ===================== 지급 이력(감사 로그) ===================== */
 function loadAuditLog(){
@@ -856,6 +935,169 @@ function deleteBet(id){
   renderBets();
 }
 
+/* ===================== 경품 관리 ===================== */
+const REDEEM_STATUS_LABEL = {requested:'신청됨', approved:'승인됨', fulfilled:'지급완료', rejected:'거절됨(환불)'};
+
+function resetPrizeForm(){
+  editingPrizeId = null;
+  document.getElementById('prizeFormTitle').textContent = '새 경품 추가';
+  document.getElementById('prizeSubmitBtn').textContent = '경품 추가';
+  document.getElementById('prizeCancelBtn').style.display = 'none';
+  document.getElementById('pz-name').value = '';
+  document.getElementById('pz-cost').value = '1000';
+  document.getElementById('pz-stock').value = '5';
+  document.getElementById('pz-desc').value = '';
+  document.getElementById('prizeFormErr').style.display = 'none';
+}
+
+function editPrize(id){
+  const p = prizes.find(x=>x.id===id);
+  if(!p) return;
+  editingPrizeId = id;
+  document.getElementById('prizeFormTitle').textContent = '경품 수정';
+  document.getElementById('prizeSubmitBtn').textContent = '수정 저장';
+  document.getElementById('prizeCancelBtn').style.display = '';
+  document.getElementById('pz-name').value = p.name;
+  document.getElementById('pz-cost').value = p.cost;
+  document.getElementById('pz-stock').value = p.stock;
+  document.getElementById('pz-desc').value = p.desc||'';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function submitPrizeForm(){
+  const errEl = document.getElementById('prizeFormErr');
+  errEl.style.display = 'none';
+  const name = document.getElementById('pz-name').value.trim();
+  const cost = Number(document.getElementById('pz-cost').value);
+  const stock = Number(document.getElementById('pz-stock').value);
+  const desc = document.getElementById('pz-desc').value.trim();
+
+  if(!name){ errEl.textContent='경품명을 입력해주세요.'; errEl.style.display='block'; return; }
+  if(cost<1){ errEl.textContent='필요 포인트는 1 이상이어야 합니다.'; errEl.style.display='block'; return; }
+  if(stock<0){ errEl.textContent='재고는 0 이상이어야 합니다.'; errEl.style.display='block'; return; }
+
+  if(editingPrizeId){
+    const p = prizes.find(x=>x.id===editingPrizeId);
+    Object.assign(p, {name, cost, stock, desc});
+    showToast('경품 정보를 수정했습니다.');
+  } else {
+    prizes.unshift({id:'p'+Date.now(), name, cost, stock, desc});
+    showToast('새 경품을 추가했습니다.');
+  }
+  savePrizes(prizes);
+  resetPrizeForm();
+  renderPrizes();
+}
+
+function deletePrize(id){
+  if(!confirm('이 경품을 삭제할까요? 이미 접수된 교환 요청 기록은 남습니다.')) return;
+  prizes = prizes.filter(p=>p.id!==id);
+  savePrizes(prizes);
+  renderPrizes();
+  showToast('경품을 삭제했습니다.');
+}
+
+function renderPrizes(){
+  const body = document.getElementById('prizeTableBody');
+  if(prizes.length===0){
+    body.innerHTML = `<tr><td colspan="4"><div class="empty-state">등록된 경품이 없습니다.</div></td></tr>`;
+    return;
+  }
+  body.innerHTML = prizes.map(p=>`
+    <tr>
+      <td><b>${p.name}</b>${p.desc?`<div class="hint" style="margin-top:2px">${p.desc}</div>`:''}</td>
+      <td>${p.cost.toLocaleString()}P</td>
+      <td>${p.stock}개</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editPrize('${p.id}')">수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deletePrize('${p.id}')">삭제</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderRedemptions(){
+  const body = document.getElementById('redemptionTableBody');
+  const list = loadRedemptions();
+  if(list.length===0){
+    body.innerHTML = `<tr><td colspan="6"><div class="empty-state">교환 요청이 없습니다.</div></td></tr>`;
+    return;
+  }
+  body.innerHTML = list.map(r=>{
+    const d = new Date(r.ts);
+    const timeText = d.toLocaleString('ko-KR', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+    let actions = '';
+    if(r.status==='requested'){
+      actions = `<button class="btn btn-primary btn-sm" onclick="approveRedemption('${r.id}')">승인</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectRedemption('${r.id}')">거절(환불)</button>`;
+    } else if(r.status==='approved'){
+      actions = `<button class="btn btn-primary btn-sm" onclick="fulfillRedemption('${r.id}')">지급완료</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectRedemption('${r.id}')">거절(환불)</button>`;
+    }
+    return `<tr>
+      <td>${timeText}</td>
+      <td><b>${r.profile}</b></td>
+      <td>${r.prizeName}</td>
+      <td>${r.cost.toLocaleString()}P</td>
+      <td><span class="pill ${r.status==='fulfilled'?'win':r.status==='rejected'?'lose':r.status==='approved'?'upcoming':'pending'}">${REDEEM_STATUS_LABEL[r.status]||r.status}</span></td>
+      <td><div class="row-actions">${actions || '-'}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+function approveRedemption(id){
+  const list = loadRedemptions();
+  const r = list.find(x=>x.id===id);
+  if(!r || r.status!=='requested') return;
+  r.status = 'approved';
+  saveRedemptions(list);
+  addAuditEntry({target:r.profile, targetType:'player', type:'경품 승인', amount:0, before:null, after:null, reason:r.prizeName});
+  renderRedemptions();
+  renderAuditLog();
+  showToast('교환 요청을 승인했습니다.');
+}
+
+function fulfillRedemption(id){
+  const list = loadRedemptions();
+  const r = list.find(x=>x.id===id);
+  if(!r || r.status!=='approved') return;
+  r.status = 'fulfilled';
+  saveRedemptions(list);
+  addAuditEntry({target:r.profile, targetType:'player', type:'경품 지급완료', amount:0, before:null, after:null, reason:r.prizeName});
+  renderRedemptions();
+  renderAuditLog();
+  showToast('경품 지급을 완료 처리했습니다.');
+}
+
+function rejectRedemption(id){
+  const list = loadRedemptions();
+  const r = list.find(x=>x.id===id);
+  if(!r || (r.status!=='requested' && r.status!=='approved')) return;
+  if(!confirm(`"${r.profile}"의 "${r.prizeName}" 신청을 거절하고 ${r.cost.toLocaleString()}P를 환불할까요?`)) return;
+
+  const ps = loadProfileState(r.profile);
+  if(ps){
+    const before = ps.balance;
+    ps.balance += r.cost;
+    saveProfileState(r.profile, ps);
+    addAuditEntry({target:r.profile, targetType:'player', type:'경품 거절(환불)', amount:r.cost, before, after:ps.balance, reason:r.prizeName});
+  }
+
+  const p = prizes.find(x=>x.id===r.prizeId);
+  if(p){ p.stock += 1; savePrizes(prizes); }
+
+  r.status = 'rejected';
+  saveRedemptions(list);
+  renderRedemptions();
+  renderProfileTable();
+  renderPointsBlock();
+  renderPrizes();
+  renderAuditLog();
+  showToast('거절 처리하고 포인트를 환불했습니다.');
+}
+
 /* ===================== 설정 ===================== */
 function renderSettings(){
   const s = loadSettings();
@@ -889,6 +1131,7 @@ function factoryReset(){
 function refreshAll(){
   MATCHES = loadMatches();
   bots = loadBots();
+  prizes = loadPrizes();
   renderMatches();
   renderProfileTable();
   renderPointsBlock();
@@ -896,10 +1139,13 @@ function refreshAll(){
   renderBotTable();
   renderBetsProfileSelect();
   renderBets();
+  renderPrizes();
+  renderRedemptions();
   renderSettings();
 }
 
 resetMatchForm();
+resetPrizeForm();
 refreshAll();
 </script>
 </body>

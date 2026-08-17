@@ -181,6 +181,26 @@ nav.tabs button:hover{color:var(--brand2)}
 .badge-chip.earned{border-color:var(--gold);background:var(--gold-soft)}
 .badge-chip.earned .b-lab{color:#8A6100}
 .badge-chip.locked{opacity:.45}
+
+/* ===== 경품샵 ===== */
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.prize-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:10px}
+.prize-card .p-name{font-weight:800;font-size:14.5px}
+.prize-card .p-desc{font-size:12px;color:var(--ink3);line-height:1.6;min-height:0}
+.prize-card .p-meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink4)}
+.prize-card .p-cost{font-weight:800;color:var(--brand);font-size:16px}
+.prize-card .p-stock{font-weight:700}
+.prize-card .p-stock.out{color:var(--red)}
+.prize-card button{background:var(--brand);color:#fff;font-weight:700;padding:10px 0;border-radius:var(--r-sm);font-size:13px}
+.prize-card button:disabled{background:var(--surface2);color:var(--ink4);cursor:default}
+.redeem-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.redeem-item .r-name{font-weight:700;font-size:13.5px}
+.redeem-item .r-sub{font-size:11.5px;color:var(--ink4);margin-top:2px}
+.pill-status{font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px}
+.pill-status.requested{background:var(--gold-soft);color:#8A6100}
+.pill-status.approved{background:var(--accent-soft);color:var(--accent)}
+.pill-status.fulfilled{background:var(--green-soft);color:var(--green)}
+.pill-status.rejected{background:var(--red-soft);color:var(--red)}
 .hist-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .hist-left .h-match{font-weight:700;font-size:13.5px}
 .hist-left .h-sub{font-size:11.5px;color:var(--ink4);margin-top:2px}
@@ -246,6 +266,7 @@ nav.tabs button:hover{color:var(--brand2)}
   <nav class="tabs">
     <button class="on" data-tab="matches" onclick="switchTab('matches')">경기예측</button>
     <button data-tab="board" onclick="switchTab('board')">리더보드</button>
+    <button data-tab="shop" onclick="switchTab('shop')">🎁 경품샵</button>
     <button data-tab="history" onclick="switchTab('history')">내 기록</button>
     <button data-tab="about" onclick="switchTab('about')">소개</button>
   </nav>
@@ -274,6 +295,16 @@ nav.tabs button:hover{color:var(--brand2)}
     <div class="board-note" id="boardNote"></div>
   </div>
 
+  <!-- 경품샵 -->
+  <div class="view" id="view-shop">
+    <div class="chips" style="margin-bottom:10px">
+      <span style="font-size:12.5px;color:var(--ink4);padding:7px 0">보유 포인트로 경품을 신청하면 관리자 승인 후 실물로 지급됩니다.</span>
+    </div>
+    <div class="shop-grid" id="shopGrid"></div>
+    <div class="section-title">내 교환 신청 내역</div>
+    <div id="myRedemptions"></div>
+  </div>
+
   <!-- 내 기록 -->
   <div class="view" id="view-history">
     <div class="summary-cards">
@@ -297,7 +328,7 @@ nav.tabs button:hover{color:var(--brand2)}
     <div class="about-card">
       <h3>이용 안내</h3>
       <ul>
-        <li>모든 포인트는 <b>가상 재화</b>이며 실제 현금으로 충전하거나 환전할 수 없습니다.</li>
+        <li>모든 포인트는 <b>가상 재화</b>이며 실제 현금으로 충전하거나 환전할 수 없습니다. "🎁 경품샵"에서 포인트로 실물 경품을 신청할 수 있지만, 이는 포인트를 현금으로 바꾸는 것이 아니라 관리자가 정한 경품을 관리자 승인 하에 지급하는 사내 리워드 방식입니다.</li>
         <li>누구나 10,000P로 시작하며, 예측이 맞으면 배율만큼 포인트를 얻고 틀리면 걸었던 포인트를 잃습니다.</li>
         <li>경기 데이터는 데모용 샘플이며, 상단 "결과 시뮬레이션" 버튼으로 결과를 즉시 확인할 수 있습니다.</li>
         <li>경기 카드의 "예측 비율"은 실제 다른 이용자의 베팅 데이터가 아니라, 이 기기에 저장된 가상 봇 데이터를 기반으로 한 참고용 데모 수치입니다.</li>
@@ -340,6 +371,23 @@ nav.tabs button:hover{color:var(--brand2)}
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">취소</button>
       <button class="btn-confirm" id="confirmBtn" onclick="confirmPrediction()">예측 확정</button>
+    </div>
+  </div>
+</div>
+
+<!-- 경품 교환 확인 모달 -->
+<div class="overlay" id="redeemOverlay">
+  <div class="modal">
+    <h3>경품 교환</h3>
+    <div class="sub" id="redeemSub"></div>
+    <div class="payout-preview">
+      <span>교환 후 남은 포인트</span>
+      <b id="redeemAfterBalance">0P</b>
+    </div>
+    <div class="err-msg" id="redeemErr"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeRedeemModal()">취소</button>
+      <button class="btn-confirm" onclick="confirmRedeem()">교환 신청</button>
     </div>
   </div>
 </div>
@@ -394,14 +442,26 @@ const BOTS_KEY = 'pickplay_bots_v1';
 const PROFILES_KEY = 'pickplay_profiles_v1';
 const ACTIVE_KEY = 'pickplay_active_profile_v1';
 const LEGACY_STATE_KEY = 'pickplay_state_v1';
+const PRIZES_KEY = 'pickplay_prizes_v1';
+const REDEMPTIONS_KEY = 'pickplay_redemptions_v1';
+const AUDIT_KEY = 'pickplay_audit_log_v1';
+const AUDIT_MAX = 300;
 const DEFAULT_SETTINGS = {startingBalance:10000, minStake:100, maxStake:100000};
+
+const DEFAULT_PRIZES = [
+  {id:'p1', name:'스타벅스 아메리카노', cost:3000, stock:10, desc:'기프티콘으로 지급됩니다.'},
+  {id:'p2', name:'배달앱 1만원 상품권', cost:8000, stock:5, desc:''},
+  {id:'p3', name:'반차 사용권', cost:20000, stock:2, desc:'사내 특전 - 팀장 승인 후 사용 가능'},
+];
 
 let state = null;       // {nickname, balance, history} for the active profile
 let bots = [];
+let prizes = [];
 let MATCHES = [];
 let currentSport = 'all';
 let boardPeriod = 'all';
 let modalCtx = null;
+let redeemCtx = null;
 
 const BOTS_SEED = [
   {name:'축구광민수', avatar:'민'},
@@ -443,6 +503,31 @@ function loadBots(){
   return seeded;
 }
 function saveBots(list){ localStorage.setItem(BOTS_KEY, JSON.stringify(list)); }
+
+function loadPrizes(){
+  try{
+    const raw = localStorage.getItem(PRIZES_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  localStorage.setItem(PRIZES_KEY, JSON.stringify(DEFAULT_PRIZES));
+  return DEFAULT_PRIZES.map(p=>({...p}));
+}
+function savePrizes(list){ localStorage.setItem(PRIZES_KEY, JSON.stringify(list)); }
+
+function loadRedemptions(){
+  try{ return JSON.parse(localStorage.getItem(REDEMPTIONS_KEY)) || []; }catch(e){ return []; }
+}
+function saveRedemptions(list){ localStorage.setItem(REDEMPTIONS_KEY, JSON.stringify(list)); }
+
+function loadAuditLog(){
+  try{ return JSON.parse(localStorage.getItem(AUDIT_KEY)) || []; }catch(e){ return []; }
+}
+function saveAuditLog(list){ localStorage.setItem(AUDIT_KEY, JSON.stringify(list.slice(0, AUDIT_MAX))); }
+function addAuditEntry(entry){
+  const log = loadAuditLog();
+  log.unshift({id:'a'+Date.now()+Math.random().toString(36).slice(2,6), ts:Date.now(), ...entry});
+  saveAuditLog(log);
+}
 
 /* ===================== 프로필(닉네임) 저장소 ===================== */
 function getProfiles(){
@@ -513,6 +598,7 @@ function init(){
   migrateLegacyIfNeeded();
   MATCHES = loadMatches();
   bots = loadBots();
+  prizes = loadPrizes();
 
   const active = getActiveProfileName();
   if(active && loadProfileState(active)){
@@ -667,10 +753,12 @@ function switchTab(tab){
   if(ps) state = {nickname: state.nickname, balance: ps.balance, history: ps.history};
   MATCHES = loadMatches();
   bots = loadBots();
+  prizes = loadPrizes();
   settlePendingPredictions();
   document.getElementById('balanceDisplay').textContent = state.balance.toLocaleString();
   if(tab==='matches') renderMatches();
   if(tab==='board') renderBoard();
+  if(tab==='shop') renderShop();
   if(tab==='history') renderHistory();
 }
 
@@ -940,6 +1028,100 @@ function paintBoard(players, fmt, isNeg){
   }).join('');
 }
 
+/* ===================== 경품샵 ===================== */
+const REDEEM_STATUS_LABEL = {requested:'신청됨', approved:'승인됨', fulfilled:'지급완료', rejected:'거절됨(환불)'};
+
+function renderShop(){
+  const grid = document.getElementById('shopGrid');
+  if(prizes.length===0){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="ic">🎁</div>등록된 경품이 없습니다.<br>관리자 페이지에서 경품을 추가할 수 있습니다.</div>`;
+  } else {
+    grid.innerHTML = prizes.map(p=>{
+      const canAfford = state.balance >= p.cost;
+      const inStock = p.stock > 0;
+      const disabled = (!canAfford || !inStock) ? 'disabled' : '';
+      return `<div class="prize-card">
+        <div class="p-name">${p.name}</div>
+        ${p.desc ? `<div class="p-desc">${p.desc}</div>` : ''}
+        <div class="p-meta">
+          <span class="p-cost">${p.cost.toLocaleString()}P</span>
+          <span class="p-stock ${inStock?'':'out'}">${inStock ? '재고 '+p.stock+'개' : '품절'}</span>
+        </div>
+        <button ${disabled} onclick="openRedeemModal('${p.id}')">${!inStock ? '품절' : !canAfford ? '포인트 부족' : '교환 신청'}</button>
+      </div>`;
+    }).join('');
+  }
+  renderMyRedemptions();
+}
+
+function renderMyRedemptions(){
+  const el = document.getElementById('myRedemptions');
+  const mine = loadRedemptions().filter(r=>r.profile===state.nickname);
+  if(mine.length===0){
+    el.innerHTML = `<div class="empty-state"><div class="ic">📦</div>아직 교환 신청 내역이 없습니다.</div>`;
+    return;
+  }
+  el.innerHTML = mine.map(r=>`
+    <div class="redeem-item">
+      <div>
+        <div class="r-name">${r.prizeName}</div>
+        <div class="r-sub">${r.cost.toLocaleString()}P 사용 · ${new Date(r.ts).toLocaleDateString('ko-KR')}</div>
+      </div>
+      <span class="pill-status ${r.status}">${REDEEM_STATUS_LABEL[r.status]||r.status}</span>
+    </div>
+  `).join('');
+}
+
+function openRedeemModal(prizeId){
+  const prize = prizes.find(p=>p.id===prizeId);
+  if(!prize) return;
+  if(state.balance < prize.cost || prize.stock<=0) return;
+  redeemCtx = {prize};
+  document.getElementById('redeemSub').textContent = `"${prize.name}"을(를) ${prize.cost.toLocaleString()}P로 교환 신청합니다. 신청 즉시 포인트가 차감되며, 관리자 승인 후 실물로 지급됩니다.`;
+  document.getElementById('redeemAfterBalance').textContent = (state.balance - prize.cost).toLocaleString()+'P';
+  document.getElementById('redeemErr').style.display = 'none';
+  document.getElementById('redeemOverlay').classList.add('on');
+}
+function closeRedeemModal(){
+  document.getElementById('redeemOverlay').classList.remove('on');
+  redeemCtx = null;
+}
+function confirmRedeem(){
+  if(!redeemCtx) return;
+  const { prize } = redeemCtx;
+  const freshPrizes = loadPrizes();
+  const freshPrize = freshPrizes.find(p=>p.id===prize.id);
+  const errEl = document.getElementById('redeemErr');
+  if(!freshPrize || freshPrize.stock<=0){ errEl.textContent='이미 품절되었습니다.'; errEl.style.display='block'; return; }
+  if(state.balance < freshPrize.cost){ errEl.textContent='보유 포인트가 부족합니다.'; errEl.style.display='block'; return; }
+
+  const before = state.balance;
+  state.balance -= freshPrize.cost;
+  saveState();
+
+  freshPrize.stock -= 1;
+  prizes = freshPrizes;
+  savePrizes(prizes);
+
+  const redemptions = loadRedemptions();
+  redemptions.unshift({
+    id: 'r'+Date.now(),
+    ts: Date.now(),
+    profile: state.nickname,
+    prizeId: freshPrize.id,
+    prizeName: freshPrize.name,
+    cost: freshPrize.cost,
+    status: 'requested',
+  });
+  saveRedemptions(redemptions);
+
+  addAuditEntry({target: state.nickname, targetType:'player', type:'경품 신청', amount: -freshPrize.cost, before, after: state.balance, reason: freshPrize.name});
+
+  closeRedeemModal();
+  renderAll();
+  showToast(`"${freshPrize.name}" 교환을 신청했습니다!`);
+}
+
 /* ===================== 배지 ===================== */
 function hasWinStreak(history, n){
   const settled = history.filter(h=>h.result!=='pending').slice().reverse(); // 오래된 순
@@ -1004,6 +1186,7 @@ function renderAll(){
   document.getElementById('balanceDisplay').textContent = state.balance.toLocaleString();
   renderMatches();
   renderBoard();
+  renderShop();
   renderHistory();
 }
 
